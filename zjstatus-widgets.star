@@ -1,4 +1,4 @@
-# zjstatus_widgets.star
+# zjstatus-widgets.star
 #
 # platforms: ["macos"]
 # after:     ["@stdlib//components/hammerspoon", "@stdlib//components/fish"]
