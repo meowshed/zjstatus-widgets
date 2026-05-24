@@ -24,7 +24,7 @@
 # zellij session attach.
 
 platforms = ["macos"]
-after = ["@stdlib//components/hammerspoon", "@stdlib//components/fish"]
+after = ["@stdlib//components/hammerspoon", "@stdlib//components/fish", "@stdlib//components/zellij"]
 
 def install(ctx):
     home = ctx.env("HOME")
