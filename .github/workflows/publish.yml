@@ -24,7 +24,7 @@ jobs:
           tar -czf "zjstatus-widgets-${{ steps.version.outputs.version }}.tar.gz" \
             --exclude='.git' \
             --exclude='.github' \
-            MODULE.meow zjstatus-widgets.star ZJStatusWidgets.spoon/ zjstatus-push-all.fish
+            MODULE.meow zjstatus-widgets/ ZJStatusWidgets.spoon/ zjstatus-push-all.fish
 
       - name: Compute SRI hash
         id: sri

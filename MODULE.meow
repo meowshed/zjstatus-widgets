@@ -1,2 +1,2 @@
-module(name = "zjstatus-widgets", version = "0.1.4", compat = 1)
-dep(name = "stdlib", version = "0.1.4")
+module(name = "zjstatus-widgets", version = "0.2.0", compat = 2)
+dep(name = "stdlib", version = "v0.1.15")
