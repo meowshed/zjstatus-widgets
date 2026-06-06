@@ -17,10 +17,12 @@ _ZJSTATUS_URL = "https://github.com/dj95/zjstatus/releases/latest/download/zjsta
 
 def install(ctx):
     home = ctx.env("HOME")
+    ctx.mkdir(home + "/.hammerspoon/Spoons/ZJStatusWidgets.spoon")
     ctx.link_file(
         src = "ZJStatusWidgets.spoon/init.lua",
         dst = home + "/.hammerspoon/Spoons/ZJStatusWidgets.spoon/init.lua",
     )
+    ctx.mkdir(home + "/.config/fish/conf.d")
     ctx.link_file(
         src = "zjstatus-push-all.fish",
         dst = home + "/.config/fish/conf.d/zjstatus-push-all.fish",
