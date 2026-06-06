@@ -180,12 +180,26 @@ end
 -- Never wipes the cache if list-sessions returns nothing — a transient empty
 -- result (e.g. during session startup) would drop all sessions and stop all
 -- widget pushes until the next refresh cycle.
+-- Also pushes cached values to any newly discovered sessions (replaces
+-- the fish conf.d bootstrap mechanism for new tab/pane detection).
 local function refreshSessions(callback)
     if not zellijBin then return end
     hs.task.new(zellijBin, function(code, out, _)
         if code == 0 and out then
             local fresh = parseSessions(out)
             if #fresh > 0 then
+                -- Push to any session not previously known
+                for _, name in ipairs(fresh) do
+                    local known = false
+                    for _, s in ipairs(cachedSessions) do
+                        if s == name then known = true; break end
+                    end
+                    if not known then
+                        log("refreshSessions: new session detected " .. name)
+                        pushToSession(name)
+                        hs.timer.doAfter(4, function() pushToSession(name) end)
+                    end
+                end
                 cachedSessions = fresh
             end
         end

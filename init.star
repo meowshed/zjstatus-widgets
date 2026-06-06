@@ -7,24 +7,13 @@
 # Pushes keyboard layout, VPN state, battery, CPU, memory, focus mode,
 # date and time to all active zellij sessions.
 #
-# Also installs zjstatus.wasm into ~/.config/zellij/plugins/ and a fish
-# conf.d snippet that bootstraps widget push on zellij session attach.
-
-# zjstatus-widgets.star
-#
-# platforms: ["macos"]
-# after:     ["@stdlib//components/hammerspoon", "@stdlib//components/fish"]
-#
-# Hammerspoon Spoon: event-driven zjstatus pipe widgets for zellij.
-# Pushes keyboard layout, VPN state, battery, CPU, memory, focus mode,
-# date and time to all active zellij sessions.
-#
-# zjstatus.wasm is loaded via https:// in the layout — no local download needed.
-# Also installs a fish conf.d snippet that bootstraps widget push on
-# zellij session attach.
+# Downloads zjstatus.wasm into ~/.config/zellij/plugins/ and symlinks
+# the Hammerspoon Spoon and fish conf.d snippet.
 
 platforms = ["macos"]
 after = ["@stdlib//components/hammerspoon", "@stdlib//components/fish", "@stdlib//components/zellij"]
+
+_ZJSTATUS_URL = "https://github.com/dj95/zjstatus/releases/latest/download/zjstatus.wasm"
 
 def install(ctx):
     home = ctx.env("HOME")
@@ -36,6 +25,13 @@ def install(ctx):
         src = "zjstatus-push-all.fish",
         dst = home + "/.config/fish/conf.d/zjstatus-push-all.fish",
     )
+    plugins_dir = home + "/.config/zellij/plugins"
+    ctx.mkdir(plugins_dir)
+    zjstatus_dest = plugins_dir + "/zjstatus.wasm"
+    if not ctx.file_exists(zjstatus_dest):
+        ctx.log("zjstatus-widgets: downloading zjstatus.wasm...")
+        ctx.run("curl", ["-fsSL", _ZJSTATUS_URL, "-o", zjstatus_dest])
+        ctx.run("chmod", ["644", zjstatus_dest])
 
 def upgrade(ctx):
     install(ctx)
@@ -46,6 +42,8 @@ def verify(ctx):
         ctx.log("zjstatus-widgets: Spoon not found")
     if not ctx.file_exists(home + "/.config/fish/conf.d/zjstatus-push-all.fish"):
         ctx.log("zjstatus-widgets: fish conf.d snippet not found")
+    if not ctx.file_exists(home + "/.config/zellij/plugins/zjstatus.wasm"):
+        ctx.log("zjstatus-widgets: zjstatus.wasm not found")
 
 def uninstall(ctx):
     home = ctx.env("HOME")
