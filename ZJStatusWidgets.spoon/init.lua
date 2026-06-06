@@ -467,6 +467,17 @@ end
 -- Calls for the same session are coalesced: if a push is already pending,
 -- the duplicate is silently dropped to avoid redundant zellij pipe spawns.
 
+-- Populate lastValues synchronously so the first bootstrap push has data.
+-- Safe to call multiple times — pushCached skips duplicates.
+local function seedLastValues()
+    pushCached("keyboard", keyboardLabel())
+    pushCached("vpn",      vpnLabel())
+    pushCached("battery",  batteryLabel())
+    pushCached("memory",   memLabel())
+    pushCached("date",     dateLabel())
+    pushCached("time",     timeLabel())
+end
+
 -- Global function callable via hs IPC CLI:
 --   hs -c "ZJStatusPushAll('session-name')"
 function ZJStatusPushAll(name)
@@ -478,6 +489,8 @@ function ZJStatusPushAll(name)
         end
         pendingPush[name] = true
         registerSession(name)
+        -- Ensure lastValues is populated before the first push
+        seedLastValues()
         pushToSession(name)
         hs.timer.doAfter(4, function()
             pushToSession(name)
@@ -563,13 +576,8 @@ function M.init()
     -- every SESSION_INTERVAL_S. Normal operation never needs list-sessions —
     -- sessions register themselves via the hs -c bootstrap in fish conf.d.
     refreshSessions(function()
-        pushCached("vpn",      vpnLabel())
-        pushCached("focus",    focusLabelFromID(_lastFocusModeID or ""))
-        pushCached("keyboard", keyboardLabel())
-        pushCached("battery",  batteryLabel())
-        pushCached("memory",   memLabel())
-        pushCached("date",     dateLabel())
-        pushCached("time",     timeLabel())
+        -- Re-push after sessions are confirmed alive (survives race where
+        -- initial push targeted a session that hadn't fully started yet).
         hs.timer.doAfter(2, pushAll)
     end)
     M._sessionTimer = hs.timer.doEvery(SESSION_INTERVAL_S, function()
