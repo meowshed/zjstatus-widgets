@@ -188,6 +188,12 @@ local function refreshSessions(callback)
         if code == 0 and out then
             local fresh = parseSessions(out)
             if #fresh > 0 then
+                -- Build a set of sessions known to zellij right now
+                local freshSet = {}
+                for _, name in ipairs(fresh) do
+                    freshSet[name] = true
+                end
+
                 -- Push to any session not previously known
                 for _, name in ipairs(fresh) do
                     local known = false
@@ -200,7 +206,20 @@ local function refreshSessions(callback)
                         hs.timer.doAfter(4, function() pushToSession(name) end)
                     end
                 end
-                cachedSessions = fresh
+
+                -- Merge fresh into cachedSessions (add new, keep existing).
+                -- Dead sessions are pruned by pipeToSession when zellij returns
+                -- "not found", so we never lose manually registered sessions
+                -- that haven't appeared in list-sessions yet.
+                for _, name in ipairs(fresh) do
+                    local known = false
+                    for _, s in ipairs(cachedSessions) do
+                        if s == name then known = true; break end
+                    end
+                    if not known then
+                        cachedSessions[#cachedSessions + 1] = name
+                    end
+                end
             end
         end
         if callback then callback(cachedSessions) end
